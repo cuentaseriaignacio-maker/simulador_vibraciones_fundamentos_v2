@@ -62,7 +62,7 @@ elif "2. Movimiento Libre Amortiguado" in regimen:
       0.80,
       0.10,
       step=0.01,
-      help="Controla la velocidad con la que se frena naturally la masa.",
+      help="Controla la velocidad con la que se frena naturalmente la masa.",
   )
   c = zeta * c_critico
   x0 = st.sidebar.slider(
@@ -116,7 +116,7 @@ wd = wn * np.sqrt(max(0, 1 - zeta**2))  # Frecuencia amortiguada
 # 2. CÁLCULO DE LA RESPUESTA TEMPORAL x(t)
 # ==============================================================================
 if "4. Movimiento Forzado Continuo" in regimen:
-  t = np.linspace(0, 5.0 / (freq_motor_hz if freq_motor_hz > 0 else 1.0), 120)
+  t = np.linspace(0, 5.0 / (freq_motor_hz if freq_motor_hz > 0 else 1.0), 60)
   M = 1.0 / np.sqrt((1 - r**2) ** 2 + (2 * zeta * r) ** 2)
   phi_rad = np.arctan2(2 * zeta * r, 1 - r**2)
   phi_deg = np.degrees(phi_rad)
@@ -127,7 +127,7 @@ if "4. Movimiento Forzado Continuo" in regimen:
   envolvente_pos = None
   envolvente_neg = None
 else:
-  t = np.linspace(0, 6.0 / fn, 120)
+  t = np.linspace(0, 6.0 / fn, 60)
   if zeta == 0:  # Armónico Simple
     x_t = x0 * np.cos(wn * t) + (v0 / wn) * np.sin(wn * t)
     envolvente_pos = None
@@ -218,6 +218,7 @@ with col_graf:
 with col_anim:
   st.subheader("🏗 Animación Física del Resorte-Masa")
 
+  # Construcción de fotogramas (frames)
   frames = []
   for i in range(len(t)):
     t_act = t[i]
@@ -229,11 +230,11 @@ with col_anim:
     frames.append(
         go.Frame(
             data=[
-                # Resorte
+                # Traza 0: Resorte
                 go.Scatter(x=x_spring_f, y=y_spring_f, mode="lines"),
-                # Amortiguador
+                # Traza 1: Amortiguador
                 go.Scatter(x=[0.15, 0.15], y=[0.8, pos_x + 0.2], mode="lines"),
-                # Bloque de Masa
+                # Traza 2: Masa
                 go.Scatter(
                     x=[-0.35, 0.35, 0.35, -0.35, -0.35],
                     y=[
@@ -258,7 +259,8 @@ with col_anim:
         )
     )
 
-  pos_0 = x_t
+  # Estado Inicial Corregido (Frame 0 con escalar pos_0)
+  pos_0 = x_t[0]
   y_spring_0 = np.linspace(0.8, pos_0 + 0.2, 15)
   x_spring_0 = -0.15 + 0.08 * np.sin(np.pi * np.arange(15))
 
@@ -296,6 +298,17 @@ with col_anim:
       frames=frames,
   )
 
+  # Techo Fijo Superior
+  fig_anim.add_shape(
+      type="rect",
+      x0=-0.6,
+      y0=0.8,
+      x1=0.6,
+      y1=0.85,
+      fillcolor="gray",
+      line=dict(color="black"),
+  )
+
   fig_anim.update_layout(
       updatemenus=[
           dict(
@@ -310,7 +323,7 @@ with col_anim:
                       args=[
                           None,
                           dict(
-                              frame=dict(duration=25, redraw=True),
+                              frame=dict(duration=35, redraw=True),
                               fromcurrent=True,
                               transition=dict(duration=0),
                           ),
@@ -351,7 +364,7 @@ if "4. Movimiento Forzado Continuo" in regimen:
   phi_vec = np.degrees(np.arctan2(2 * zeta * r_vec, 1 - r_vec**2))
   phi_vec = np.where(phi_vec < 0, phi_vec + 360, phi_vec)
 
-  # Subplots de 1 fila y 2 columnas (Lado a lado)
+  # Subplots 1 fila x 2 columnas
   fig_bode = make_subplots(
       rows=1,
       cols=2,
@@ -361,7 +374,7 @@ if "4. Movimiento Forzado Continuo" in regimen:
       ),
   )
 
-  # Columna 1 (Izquierda): Magnificación M(r)
+  # Columna 1: Magnificación M(r)
   fig_bode.add_trace(
       go.Scatter(
           x=r_vec,
@@ -395,7 +408,7 @@ if "4. Movimiento Forzado Continuo" in regimen:
       col=1,
   )
 
-  # Columna 2 (Derecha): Ángulo de Desfase ϕ(r)
+  # Columna 2: Ángulo de Desfase ϕ(r)
   fig_bode.add_trace(
       go.Scatter(
           x=r_vec,
