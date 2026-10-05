@@ -62,7 +62,7 @@ elif "2. Movimiento Libre Amortiguado" in regimen:
       0.80,
       0.10,
       step=0.01,
-      help="Controla la velocidad con la que se frena naturalmente la masa.",
+      help="Controla la velocidad con la que se frena naturally la masa.",
   )
   c = zeta * c_critico
   x0 = st.sidebar.slider(
@@ -218,7 +218,6 @@ with col_graf:
 with col_anim:
   st.subheader("🏗 Animación Física del Resorte-Masa")
 
-  # Construcción dinámica de fotogramas (frames)
   frames = []
   for i in range(len(t)):
     t_act = t[i]
@@ -259,8 +258,7 @@ with col_anim:
         )
     )
 
-  # Estado Inicial (Frame 0)
-  pos_0 = x_t[0]
+  pos_0 = x_t
   y_spring_0 = np.linspace(0.8, pos_0 + 0.2, 15)
   x_spring_0 = -0.15 + 0.08 * np.sin(np.pi * np.arange(15))
 
@@ -342,7 +340,7 @@ with col_anim:
   st.plotly_chart(fig_anim, use_container_width=True)
 
 # ==============================================================================
-# 5. DIAGRAMAS DE BODE COMPLETO: MAGNIFICACIÓN M(r) Y ÁNGULO DE DESFASE ϕ(r)
+# 5. DIAGRAMAS DE BODE LADO A LADO: MAGNIFICACIÓN M(r) Y ÁNGULO DE DESFASE ϕ(r)
 # ==============================================================================
 if "4. Movimiento Forzado Continuo" in regimen:
   st.markdown("---")
@@ -353,19 +351,17 @@ if "4. Movimiento Forzado Continuo" in regimen:
   phi_vec = np.degrees(np.arctan2(2 * zeta * r_vec, 1 - r_vec**2))
   phi_vec = np.where(phi_vec < 0, phi_vec + 360, phi_vec)
 
-  # Subplots de 2 niveles: Arriba Magnificación M(r), Abajo Ángulo de Desfase ϕ(r)
+  # Subplots de 1 fila y 2 columnas (Lado a lado)
   fig_bode = make_subplots(
-      rows=2,
-      cols=1,
-      shared_xaxes=True,
-      vertical_spacing=0.12,
+      rows=1,
+      cols=2,
       subplot_titles=(
           "a) Factor de Magnificación Dinámica M(r)",
           "b) Ángulo de Desfase ϕ(r) [Fuerza vs Desplazamiento]",
       ),
   )
 
-  # 1. Nivel Superior: Magnificación M(r)
+  # Columna 1 (Izquierda): Magnificación M(r)
   fig_bode.add_trace(
       go.Scatter(
           x=r_vec,
@@ -399,7 +395,7 @@ if "4. Movimiento Forzado Continuo" in regimen:
       col=1,
   )
 
-  # 2. Nivel Inferior: Ángulo de Desfase ϕ(r)
+  # Columna 2 (Derecha): Ángulo de Desfase ϕ(r)
   fig_bode.add_trace(
       go.Scatter(
           x=r_vec,
@@ -408,8 +404,8 @@ if "4. Movimiento Forzado Continuo" in regimen:
           name="Desfase ϕ(r)",
           line=dict(color="#2ca02c", width=2.5),
       ),
-      row=2,
-      col=1,
+      row=1,
+      col=2,
   )
   fig_bode.add_trace(
       go.Scatter(
@@ -421,26 +417,27 @@ if "4. Movimiento Forzado Continuo" in regimen:
           text=[f"ϕ={phi_deg:.1f}°"],
           textposition="top center",
       ),
-      row=2,
-      col=1,
+      row=1,
+      col=2,
   )
   fig_bode.add_vline(
-      x=1.0, line_dash="dash", line_color="orange", row=2, col=1
+      x=1.0, line_dash="dash", line_color="orange", row=1, col=2
   )
   fig_bode.add_hline(
       y=90.0,
       line_dash="dot",
       line_color="gray",
       annotation_text="90° en Resonancia",
-      row=2,
-      col=1,
+      row=1,
+      col=2,
   )
 
-  fig_bode.update_layout(template="plotly_white", height=550, showlegend=False)
+  fig_bode.update_layout(template="plotly_white", height=380, showlegend=False)
+  fig_bode.update_xaxes(title_text="Razón de Frecuencias r = ω / ωn", row=1, col=1)
+  fig_bode.update_xaxes(title_text="Razón de Frecuencias r = ω / ωn", row=1, col=2)
   fig_bode.update_yaxes(title_text="Magnificación M = X / δ_st", row=1, col=1)
   fig_bode.update_yaxes(
-      title_text="Desfase ϕ (°)", range=[-10, 200], row=2, col=1
+      title_text="Desfase ϕ (°)", range=[-10, 200], row=1, col=2
   )
-  fig_bode.update_xaxes(title_text="Razón de Frecuencias r = ω / ωn", row=2, col=1)
 
   st.plotly_chart(fig_bode, use_container_width=True)
